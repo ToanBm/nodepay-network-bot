@@ -6,7 +6,7 @@ show_errors = True
 init(autoreset=True)
 
 print("\n" + " " * 35 + f"{Fore.CYAN}Nodepay Network{Style.RESET_ALL}")
-print(" " * 32 + f"{Fore.GREEN}Github: recitativonika{Style.RESET_ALL}")
+print(" " * 32 + f"{Fore.GREEN}GitHub: recitativonika{Style.RESET_ALL}")
 print(" " * 30 + f"{Fore.CYAN}github.com/recitativonika{Style.RESET_ALL}" + "\n")
 
 logger = logging.getLogger(__name__)

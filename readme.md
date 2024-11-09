@@ -37,7 +37,7 @@ This script automates network or node operations for Nodepay Network.
 	- Login to your grass account in https://app.nodepay.ai/dashboard, make sure you is in this link before go to next step
 	- Go to inspect element, press F12 or right-click then pick inspect element in your browser
 	- Go to application tab - look for Local Storage in storage list -> click `https://app.nodepay.ai` and you will see your np_token.
-	or you can go Console tab and paste this 
+	- or you can go Console tab and paste this 
 	```bash
 	localStorage.getItem('np_token')
 	```

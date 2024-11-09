@@ -16,7 +16,7 @@ if not logger.hasHandlers():
     logger.addHandler(console_handler)
     console_handler.setFormatter(logging.Formatter(f'{Fore.CYAN}[%(asctime)s] {Style.RESET_ALL}%(message)s', datefmt='%Y-%m-%d/%H:%M:%S'))
 
-apiurl, status = {"session": "https://api.nodepay.org/api/auth/session", "ping": "https://nw.nodepay.org/api/network/ping"}, {"connected": 1, "disconnected": 2, "no_connection": 3}
+apiurl, status = {"session": "https://18.136.143.169/api/auth/session", "ping": "https://54.255.192.166/api/network/ping"}, {"connected": 1, "disconnected": 2, "no_connection": 3}
 current_status, browser_identifier, user_account_info, last_ping_timestamp, pingdelay, retry = status["no_connection"], None, {}, {}, 60, 60
 
 def gen_uuid(): return str(uuid.uuid4())

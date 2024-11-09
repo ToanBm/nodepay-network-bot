@@ -27,7 +27,7 @@ This script automates network or node operations for Nodepay Network.
 	```
 
 ## Usage
-1. Register nodepay account first, if you dont have you can register [here](https://app.nodepay.ai/register?ref=LrCeinXqThMs9tb)
+1. Register nodepay account first, if you dont have you can register [here](https://app.nodepay.ai/register?ref=LrCeinXqThMs9tb), I recomended to download extension and activate your account first before running the script.
 2. Set and Modify `user.txt` before running the script. Below how to setup this file, put your np_token in the text file, example below:
 	```
 	eyJhbGcixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

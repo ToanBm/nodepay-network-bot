@@ -1,4 +1,9 @@
-import uuid, aiohttp, asyncio, time, cloudscraper, logging
+import uuid
+import aiohttp
+import asyncio
+import time
+import cloudscraper
+import logging
 from InquirerPy import inquirer
 from colorama import Fore, Style, init
 
@@ -16,7 +21,15 @@ if not logger.hasHandlers():
     logger.addHandler(console_handler)
     console_handler.setFormatter(logging.Formatter(f'{Fore.CYAN}[%(asctime)s] {Style.RESET_ALL}%(message)s', datefmt='%Y-%m-%d/%H:%M:%S'))
 
-apiurl, status = {"session": "http://18.136.143.169/api/auth/session", "ping": "http://54.255.192.166/api/network/ping"}, {"connected": 1, "disconnected": 2, "no_connection": 3}
+apiurl, status = {
+    "session": "http://18.136.143.169/api/auth/session", 
+    "ping": "http://54.255.192.166/api/network/ping"
+}, {
+    "connected": 1, 
+    "disconnected": 2, 
+    "no_connection": 3
+}
+
 current_status, browser_identifier, user_account_info, last_ping_timestamp, pingdelay, retry = status["no_connection"], None, {}, {}, 60, 60
 
 def gen_uuid(): return str(uuid.uuid4())
@@ -116,11 +129,14 @@ async def main():
     if use_proxy_option == "Use Proxy":
         total_proxies = len(all_proxies)
         logger.info(f"{Fore.WHITE}Processing with {Fore.YELLOW}{total_proxies}{Fore.WHITE} proxies, {Fore.YELLOW}trying to filter the proxy and only connect with active proxy...{Style.RESET_ALL}")
+    
     while True:
         tasks = []
-        for token in tokens:
+        for i, token in enumerate(tokens):
             active_proxies = [proxy for proxy in all_proxies if proxy_operations('is_valid_proxy', proxy)]
-            for proxy in active_proxies[:100]: tasks.append(asyncio.create_task(fetch_profile(proxy, token)))
+            token_proxies = active_proxies[i*10:(i+1)*10]
+            for proxy in token_proxies:
+                tasks.append(asyncio.create_task(fetch_profile(proxy, token)))
         await asyncio.gather(*tasks)
         await asyncio.sleep(10)
 

@@ -30,7 +30,7 @@ apiurl, status = {
     "no_connection": 3
 }
 
-current_status, browser_identifier, user_account_info, last_ping_timestamp, pingdelay, retry = status["no_connection"], None, {}, {}, 60, 60
+current_status, user_account_info, last_ping_timestamp, pingdelay, retry = status["no_connection"], {}, {}, 60, 60
 
 def gen_uuid(): return str(uuid.uuid4())
 
@@ -48,22 +48,22 @@ def load_file(filename):
 def proxy_operations(op, proxy=None, data=None): return op == 'is_valid_proxy'
 
 async def fetch_profile(proxy, token):
-    global browser_identifier, user_account_info
+    global user_account_info
     try:
+        browser_identifier = gen_uuid()
         session_info = proxy_operations('load_session', proxy)
         if not session_info:
-            browser_identifier = gen_uuid()
             response = await call_api(apiurl["session"], {}, proxy, token)
             validate_resp(response)
             user_account_info = response["data"]
             if user_account_info.get("uid"):
                 proxy_operations('save_session', proxy, user_account_info)
-                await initiate_ping(proxy, token)
+                await initiate_ping(proxy, token, browser_identifier)
             else:
                 proxy_operations('remove_proxy', proxy)
         else:
             user_account_info = session_info
-            await initiate_ping(proxy, token)
+            await initiate_ping(proxy, token, browser_identifier)
     except Exception as e:
         if show_errors:
             logger.error(f"Error occurred in fetch_profile: {e}")
@@ -82,17 +82,17 @@ async def call_api(url, data, proxy, token):
     except Exception as e:
         logger.error(f"An error occurred in call_api: {e}") if show_errors else None
 
-async def initiate_ping(proxy, token):
+async def initiate_ping(proxy, token, browser_identifier):
     try:
         while True:
-            await send_ping(proxy, token)
+            await send_ping(proxy, token, browser_identifier)
             await asyncio.sleep(pingdelay)
     except asyncio.CancelledError:
         logger.info(f"Ping for proxy {proxy} cancelled")
     except Exception as e:
         logger.error(f"An error occurred in initiate_ping: {e}") if show_errors else None
 
-async def send_ping(proxy, token):
+async def send_ping(proxy, token, browser_identifier):
     global last_ping_timestamp, retry, current_status
     current_time = time.time()
     logger.info(f"{Fore.BLUE}Attempting to send ping from {Fore.YELLOW}{proxy}{Style.RESET_ALL}")
@@ -152,3 +152,4 @@ def run_application():
 
 if __name__ == '__main__':
     run_application()
+        

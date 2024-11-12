@@ -40,18 +40,14 @@ def validate_resp(resp):
 
 def load_file(filename):
     try:
-        with open(filename, 'r') as file:
-            return [line.strip() for line in file if line.strip()]
-    except FileNotFoundError: 
-        logger.error(f"File {filename} not found.") if show_errors else None
-    except Exception as e: 
-        logger.error(f"An error occurred: {e}") if show_errors else None
+        with open(filename, 'r') as file: return [line.strip() for line in file if line.strip()]
+    except FileNotFoundError: logger.error(f"File {filename} not found.") if show_errors else None
+    except Exception as e: logger.error(f"An error occurred: {e}") if show_errors else None
     return []
-
 
 def proxy_operations(op, proxy=None, data=None): return op == 'is_valid_proxy'
 
-async def fetch_profile(proxy, token, account_number):
+async def fetch_profile(proxy, token):
     global user_account_info
     try:
         browser_identifier = gen_uuid()
@@ -62,12 +58,12 @@ async def fetch_profile(proxy, token, account_number):
             user_account_info = response["data"]
             if user_account_info.get("uid"):
                 proxy_operations('save_session', proxy, user_account_info)
-                await initiate_ping(proxy, token, browser_identifier, account_number)
+                await initiate_ping(proxy, token, browser_identifier)
             else:
                 proxy_operations('remove_proxy', proxy)
         else:
             user_account_info = session_info
-            await initiate_ping(proxy, token, browser_identifier, account_number)
+            await initiate_ping(proxy, token, browser_identifier)
     except Exception as e:
         if show_errors:
             logger.error(f"Error occurred in fetch_profile: {e}")
@@ -86,20 +82,20 @@ async def call_api(url, data, proxy, token):
     except Exception as e:
         logger.error(f"An error occurred in call_api: {e}") if show_errors else None
 
-async def initiate_ping(proxy, token, browser_identifier, account_number):
+async def initiate_ping(proxy, token, browser_identifier):
     try:
         while True:
-            await send_ping(proxy, token, browser_identifier, account_number)
+            await send_ping(proxy, token, browser_identifier)
             await asyncio.sleep(pingdelay)
     except asyncio.CancelledError:
         logger.info(f"Ping for proxy {proxy} cancelled")
     except Exception as e:
         logger.error(f"An error occurred in initiate_ping: {e}") if show_errors else None
 
-async def send_ping(proxy, token, browser_identifier, account_number):
+async def send_ping(proxy, token, browser_identifier):
     global last_ping_timestamp, retry, current_status
     current_time = time.time()
-    logger.info(f"{Fore.BLUE}Attempting to send ping from {Fore.YELLOW}{proxy}{Style.RESET_ALL}, from account {Fore.CYAN}{account_number}{Style.RESET_ALL}")
+    logger.info(f"{Fore.BLUE}Attempting to send ping from {Fore.YELLOW}{proxy}{Style.RESET_ALL}")
     if proxy in last_ping_timestamp and (current_time - last_ping_timestamp[proxy]) < pingdelay:
         logger.info(f"Woah there! Not enough time has elapsed for proxy {proxy}")
         return
@@ -140,7 +136,7 @@ async def main():
             active_proxies = [proxy for proxy in all_proxies if proxy_operations('is_valid_proxy', proxy)]
             token_proxies = active_proxies[i*10:(i+1)*10]
             for proxy in token_proxies:
-                tasks.append(asyncio.create_task(fetch_profile(proxy, token, i + 1)))
+                tasks.append(asyncio.create_task(fetch_profile(proxy, token)))
         await asyncio.gather(*tasks)
         await asyncio.sleep(10)
 
@@ -156,3 +152,4 @@ def run_application():
 
 if __name__ == '__main__':
     run_application()
+        

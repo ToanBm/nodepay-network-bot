@@ -22,8 +22,8 @@ if not logger.hasHandlers():
     console_handler.setFormatter(logging.Formatter(f'{Fore.CYAN}[%(asctime)s] {Style.RESET_ALL}%(message)s', datefmt='%Y-%m-%d/%H:%M:%S'))
 
 apiurl, status = {
-    "session": "http://18.136.143.169/api/auth/session", 
-    "ping": "http://54.255.192.166/api/network/ping"
+    "session": "http://api.nodepay.ai/api/auth/session", 
+    "ping": "http://52.77.10.116/api/network/ping"
 }, {
     "connected": 1, 
     "disconnected": 2, 

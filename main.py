@@ -134,7 +134,7 @@ async def main():
         tasks = []
         for i, token in enumerate(tokens):
             active_proxies = [proxy for proxy in all_proxies if proxy_operations('is_valid_proxy', proxy)]
-            token_proxies = active_proxies[i*10:(i+1)*10]
+            token_proxies = active_proxies[i*3:(i+1)*3]
             for proxy in token_proxies:
                 tasks.append(asyncio.create_task(fetch_profile(proxy, token)))
         await asyncio.gather(*tasks)

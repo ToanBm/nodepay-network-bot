@@ -54,16 +54,13 @@ This script automates network or node operations for Nodepay Network.
 	```bash
 	python main.py
 	```
-5. When running the script, select the menu if you want to use proxy or not and if you want to show the error in console or not with arrow keys, it will look like this
+5. When running the script, answer if you want to use proxy and how much proxy you want to use, it will look like this:
 	```
- 	? Do you want to use or run with proxy? (Use arrow keys)
-	❯ Use Proxy
-	  Without Proxy/Local network
+ 	Do you want to use proxies? (y/n): 
+
  	```
 	```
-	? Do you want to show error in console?
-	❯ Show Errors
-	  Hide Errors
+	How many proxies per account do you want to use?: 
 	```
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.

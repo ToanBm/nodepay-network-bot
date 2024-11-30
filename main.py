@@ -16,7 +16,7 @@ def truncate_token(token):
     return f"{token[:5]}--{token[-5:]}"
 
 logger.remove()
-logger.add(lambda msg: print(msg, end=''), format="{time:HH:mm:ss} [{level}] {message}", level="INFO")
+logger.add(lambda msg: print(msg, end=''), format="{message}", level="INFO")
 
 PING_INTERVAL = 15
 RETRIES = 10
@@ -51,13 +51,15 @@ class AccountData:
         self.account_info = {}
         self.retries = 0
         self.last_ping_status = 'Waiting...'
-        self.browser_id = {
-            'ping_count': 0,
-            'successful_pings': 0,
-            'score': 0,
-            'start_time': time.time(),
-            'last_ping_time': None
-        }
+        self.browser_ids = [
+            {
+                'ping_count': 0,
+                'successful_pings': 0,
+                'score': 0,
+                'start_time': time.time(),
+                'last_ping_time': None
+            } for _ in proxies
+        ]
 
     def reset(self):
         self.status_connect = CONNECTION_STATES["NONE_CONNECTION"]
@@ -110,36 +112,35 @@ async def execute_request(url, data, account, proxy=None):
 
     return response.json()
 
-async def start_ping(account):
+async def start_ping(account, proxy, browser_id):
     try:
-        logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Starting ping for token {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL}")
+        logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Starting ping for token {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL} with proxy {proxy}")
         while True:
-            for proxy in account.proxies or [None]:
-                try:
-                    await asyncio.sleep(PING_INTERVAL)
-                    await perform_ping(account, proxy)
-                except Exception as e:
-                    logger.error(f"{Fore.RED}Ping failed for token {truncate_token(account.token)} using proxy {proxy}: {e}{Style.RESET_ALL}")
+            try:
+                await asyncio.sleep(PING_INTERVAL)
+                await perform_ping(account, proxy, browser_id)
+            except Exception as e:
+                logger.error(f"{Fore.RED}Ping failed for token {truncate_token(account.token)} using proxy {proxy}: {e}{Style.RESET_ALL}")
     except asyncio.CancelledError:
         logger.info(f"Ping task for token {truncate_token(account.token)} was cancelled")
     except Exception as e:
         logger.error(f"Error in start_ping for token {truncate_token(account.token)}: {e}")
 
-async def perform_ping(account, proxy):
+async def perform_ping(account, proxy, browser_id):
     current_time = time.time()
     logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Attempting to send ping from {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL} with {Fore.YELLOW}{proxy if proxy else 'no proxy'}{Style.RESET_ALL}")
 
-    if account.browser_id['last_ping_time'] and (current_time - account.browser_id['last_ping_time']) < PING_INTERVAL:
+    if browser_id['last_ping_time'] and (current_time - browser_id['last_ping_time']) < PING_INTERVAL:
         logger.info(f"Woah there! Not enough time has elapsed for proxy {proxy}")
         return
 
-    account.browser_id['last_ping_time'] = current_time
+    browser_id['last_ping_time'] = current_time
 
     for url in DOMAIN_API["PING"]:
         try:
             data = {
                 "id": account.account_info.get("uid"),
-                "browser_id": account.browser_id,
+                "browser_id": browser_id,
                 "timestamp": int(time.time())
             }
             response = await execute_request(url, data, account, proxy)
@@ -147,7 +148,7 @@ async def perform_ping(account, proxy):
 
             if ping_result == "success":
                 logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Ping {Fore.GREEN}{ping_result}{Style.RESET_ALL} from {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL} with {Fore.YELLOW}{proxy if proxy else 'no proxy'}{Style.RESET_ALL}, Network Quality: {Fore.GREEN}{network_quality}{Style.RESET_ALL}")
-                account.browser_id['successful_pings'] += 1
+                browser_id['successful_pings'] += 1
                 return
             else:
                 logger.warning(f"{Fore.RED}Ping {ping_result}{Style.RESET_ALL} for token {truncate_token(account.token)} using proxy {proxy}")
@@ -157,14 +158,13 @@ async def perform_ping(account, proxy):
 
 async def collect_profile_info(account):
     try:
-        for proxy in account.proxies or [None]:
+        for proxy, browser_id in zip(account.proxies, account.browser_ids):
             try:
                 response = await execute_request(DOMAIN_API["SESSION"], {}, account, proxy)
                 if response.get("code") == 0:
                     account.account_info = response["data"]
                     if account.account_info.get("uid"):
-                        await start_ping(account)
-                        return
+                        await start_ping(account, proxy, browser_id)
                 else:
                     logger.warning(f"Session failed for token {truncate_token(account.token)} using proxy {proxy}")
             except Exception as e:
@@ -186,11 +186,17 @@ async def main():
     proxies = await retrieve_proxies()
 
     use_proxies = input(f"{Fore.YELLOW}Do you want to use proxies? (y/n): {Style.RESET_ALL}").strip().lower() == 'y'
+    if use_proxies:
+        try:
+            proxies_per_account = int(input(f"{Fore.YELLOW}How many proxies per account do you want to use?: {Style.RESET_ALL}").strip())
+        except ValueError:
+            logger.error("Invalid input. Please enter a number.")
+            return
 
     tasks = []
     for index, token in enumerate(tokens, start=1):
-        start_index = (index - 1) * 3
-        assigned_proxies = proxies[start_index:start_index + 3] if use_proxies else []
+        start_index = (index - 1) * proxies_per_account
+        assigned_proxies = proxies[start_index:start_index + proxies_per_account] if use_proxies else []
         tasks.append(process_account(token, assigned_proxies, index))
 
     await asyncio.gather(*tasks)

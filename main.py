@@ -101,10 +101,6 @@ async def execute_request(url, data, account, proxy=None):
 
     proxy_config = {"http": proxy, "https": proxy} if proxy else None
 
-    if proxy:
-        logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Using proxy {Fore.YELLOW}{proxy}{Style.RESET_ALL} for token {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL}")
-    else:
-        logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} No proxy used for token {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL}")
 
     try:
         response = scraper.post(url, json=data, headers=headers, proxies=proxy_config, timeout=60)
@@ -194,7 +190,8 @@ async def main():
 
     tasks = []
     for index, token in enumerate(tokens, start=1):
-        assigned_proxies = proxies[:3] if use_proxies else []
+        start_index = (index - 1) * 3
+        assigned_proxies = proxies[start_index:start_index + 3] if use_proxies else []
         tasks.append(process_account(token, assigned_proxies, index))
 
     await asyncio.gather(*tasks)

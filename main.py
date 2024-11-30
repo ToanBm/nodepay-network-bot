@@ -16,7 +16,7 @@ def truncate_token(token):
     return f"{token[:5]}--{token[-5:]}"
 
 logger.remove()
-logger.add(lambda msg: print(msg, end=''), format="{message}", level="INFO")
+logger.add(lambda msg: print(msg, end=''), format="{time:HH:mm:ss} [{level}] {message}", level="INFO")
 
 PING_INTERVAL = 15
 RETRIES = 10
@@ -101,12 +101,11 @@ async def execute_request(url, data, account, proxy=None):
 
     proxy_config = {"http": proxy, "https": proxy} if proxy else None
 
-
     try:
         response = scraper.post(url, json=data, headers=headers, proxies=proxy_config, timeout=60)
         response.raise_for_status()
     except Exception as e:
-        logger.error(f"Error during API call for token {truncate_token(account.token)} with proxy {proxy}: {e}")
+        logger.error(f"{Fore.RED}Error during API call for token {truncate_token(account.token)} with proxy {proxy}: {e}{Style.RESET_ALL}")
         raise ValueError(f"Failed API call to {url}")
 
     return response.json()
@@ -120,7 +119,7 @@ async def start_ping(account):
                     await asyncio.sleep(PING_INTERVAL)
                     await perform_ping(account, proxy)
                 except Exception as e:
-                    logger.error(f"Ping failed for token {truncate_token(account.token)} using proxy {proxy}: {e}")
+                    logger.error(f"{Fore.RED}Ping failed for token {truncate_token(account.token)} using proxy {proxy}: {e}{Style.RESET_ALL}")
     except asyncio.CancelledError:
         logger.info(f"Ping task for token {truncate_token(account.token)} was cancelled")
     except Exception as e:
@@ -151,10 +150,10 @@ async def perform_ping(account, proxy):
                 account.browser_id['successful_pings'] += 1
                 return
             else:
-                logger.warning(f"Ping {Fore.RED}{ping_result}{Style.RESET_ALL} for token {truncate_token(account.token)} using proxy {proxy}")
+                logger.warning(f"{Fore.RED}Ping {ping_result}{Style.RESET_ALL} for token {truncate_token(account.token)} using proxy {proxy}")
 
         except Exception as e:
-            logger.error(f"Ping failed for token {truncate_token(account.token)} using URL {url} and proxy {proxy}: {e}")
+            logger.error(f"{Fore.RED}Ping failed for token {truncate_token(account.token)} using URL {url} and proxy {proxy}: {e}{Style.RESET_ALL}")
 
 async def collect_profile_info(account):
     try:

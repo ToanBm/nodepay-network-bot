@@ -58,6 +58,14 @@ class AccountData:
                 'score': 0,
                 'start_time': time.time(),
                 'last_ping_time': None
+            }
+        ] if not proxies else [
+            {
+                'ping_count': 0,
+                'successful_pings': 0,
+                'score': 0,
+                'start_time': time.time(),
+                'last_ping_time': None
             } for _ in proxies
         ]
 
@@ -158,19 +166,23 @@ async def perform_ping(account, proxy, browser_id):
 
 async def collect_profile_info(account):
     try:
-        for proxy, browser_id in zip(account.proxies, account.browser_ids):
-            try:
-                response = await execute_request(DOMAIN_API["SESSION"], {}, account, proxy)
-                if response.get("code") == 0:
-                    account.account_info = response["data"]
-                    if account.account_info.get("uid"):
-                        await start_ping(account, proxy, browser_id)
-                else:
-                    logger.warning(f"Session failed for token {truncate_token(account.token)} using proxy {proxy}")
-            except Exception as e:
-                logger.error(f"Failed to collect profile info for token {truncate_token(account.token)} using proxy {proxy}: {e}")
+        if not account.proxies:
+            await start_ping(account, None, account.browser_ids[0])
+        else:
+            for proxy, browser_id in zip(account.proxies, account.browser_ids):
+                try:
+                    response = await execute_request(DOMAIN_API["SESSION"], {}, account, proxy)
+                    if response.get("code") == 0:
+                        account.account_info = response["data"]
+                        if account.account_info.get("uid"):
+                            await start_ping(account, proxy, browser_id)
+                    else:
+                        logger.warning(f"Session failed for token {truncate_token(account.token)} using proxy {proxy}")
+                except Exception as e:
+                    logger.error(f"Failed to collect profile info for token {truncate_token(account.token)} using proxy {proxy}: {e}")
 
-        logger.error(f"All proxies failed for token {truncate_token(account.token)}")
+        if account.proxies:
+            logger.error(f"All proxies failed for token {truncate_token(account.token)}")
     except Exception as e:
         logger.error(f"Error in collect_profile_info for token {truncate_token(account.token)}: {e}")
 
@@ -186,6 +198,8 @@ async def main():
     proxies = await retrieve_proxies()
 
     use_proxies = input(f"{Fore.YELLOW}Do you want to use proxies? (y/n): {Style.RESET_ALL}").strip().lower() == 'y'
+    proxies_per_account = 0
+
     if use_proxies:
         try:
             proxies_per_account = int(input(f"{Fore.YELLOW}How many proxies per account do you want to use?: {Style.RESET_ALL}").strip())
@@ -199,10 +213,18 @@ async def main():
         assigned_proxies = proxies[start_index:start_index + proxies_per_account] if use_proxies else []
         tasks.append(process_account(token, assigned_proxies, index))
 
-    await asyncio.gather(*tasks)
+    try:
+        await asyncio.gather(*tasks)
+    except asyncio.CancelledError:
+        logger.info("All tasks have been cancelled.")
 
 if __name__ == '__main__':
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logger.info("Program terminated by user.")
+        tasks = asyncio.all_tasks()
+        for task in tasks:
+            task.cancel()
+        asyncio.get_event_loop().run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+        asyncio.get_event_loop().close()

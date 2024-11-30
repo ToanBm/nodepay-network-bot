@@ -15,16 +15,16 @@ This script automates network or node operations for Nodepay Network.
 
 1. Clone the repository to your local machine:
    ```bash
-	git clone https://github.com/recitativonika/nodepay-network-bot.git
+   git clone https://github.com/recitativonika/nodepay-network-bot.git
    ```
 2. Navigate to the project directory:
-	```bash
-	cd nodepay-network-bot
-	```
-3. Install the necessary dependencies:
-	```bash
-	pip install -r requirements.txt
-	```
+   ```bash
+   cd nodepay-network-bot
+   ```
+4. Install the necessary dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 1. Register nodepay account first, if you dont have you can register [here](https://app.nodepay.ai/register?ref=LrCeinXqThMs9tb), I recomended to `download extension`, `activate your account`, complete the `Proof of Humanhood` and `connect your wallet` first before running the script because this important for `Nodepay TGE`.

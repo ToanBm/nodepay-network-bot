@@ -120,15 +120,25 @@ async def execute_request(url, data, account, proxy=None):
 
     return response.json()
 
-async def start_ping(account, proxy, browser_id):
+async def start_ping(account, proxies, browser_ids):
     try:
-        logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Starting ping for token {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL} with proxy {proxy}")
+        proxy_count = len(proxies) if proxies else 1
+        proxy_index = 0
+
         while True:
+            proxy = proxies[proxy_index] if proxies else None
+            browser_id = browser_ids[proxy_index] if proxies else browser_ids[0]
+
+            logger.info(f"{Fore.CYAN}[{time.strftime('%H:%M:%S')}][{account.index}]{Style.RESET_ALL} Starting ping for token {Fore.CYAN}{truncate_token(account.token)}{Style.RESET_ALL} with proxy {proxy}")
+
             try:
                 await asyncio.sleep(PING_INTERVAL)
                 await perform_ping(account, proxy, browser_id)
             except Exception as e:
                 logger.error(f"{Fore.RED}Ping failed for token {truncate_token(account.token)} using proxy {proxy}: {e}{Style.RESET_ALL}")
+
+\            proxy_index = (proxy_index + 1) % proxy_count
+
     except asyncio.CancelledError:
         logger.info(f"Ping task for token {truncate_token(account.token)} was cancelled")
     except Exception as e:
@@ -167,22 +177,32 @@ async def perform_ping(account, proxy, browser_id):
 async def collect_profile_info(account):
     try:
         if not account.proxies:
-            await start_ping(account, None, account.browser_ids[0])
+            await start_ping(account, None, account.browser_ids)
         else:
-            for proxy, browser_id in zip(account.proxies, account.browser_ids):
+            proxy_count = len(account.proxies)
+            proxy_index = 0
+            success = False
+
+            while not success and proxy_index < proxy_count:
+                proxy = account.proxies[proxy_index]
+                browser_id = account.browser_ids[proxy_index]
+
                 try:
                     response = await execute_request(DOMAIN_API["SESSION"], {}, account, proxy)
                     if response.get("code") == 0:
                         account.account_info = response["data"]
                         if account.account_info.get("uid"):
-                            await start_ping(account, proxy, browser_id)
+                            await start_ping(account, account.proxies, account.browser_ids)
+                            success = True
                     else:
                         logger.warning(f"Session failed for token {truncate_token(account.token)} using proxy {proxy}")
                 except Exception as e:
                     logger.error(f"Failed to collect profile info for token {truncate_token(account.token)} using proxy {proxy}: {e}")
 
-        if account.proxies:
-            logger.error(f"All proxies failed for token {truncate_token(account.token)}")
+                proxy_index = (proxy_index + 1) % proxy_count
+
+            if not success:
+                logger.error(f"All proxies failed for token {truncate_token(account.token)}")
     except Exception as e:
         logger.error(f"Error in collect_profile_info for token {truncate_token(account.token)}: {e}")
 

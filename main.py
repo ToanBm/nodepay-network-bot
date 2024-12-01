@@ -137,7 +137,7 @@ async def start_ping(account, proxies, browser_ids):
             except Exception as e:
                 logger.error(f"{Fore.RED}Ping failed for token {truncate_token(account.token)} using proxy {proxy}: {e}{Style.RESET_ALL}")
 
-\            proxy_index = (proxy_index + 1) % proxy_count
+            proxy_index = (proxy_index + 1) % proxy_count
 
     except asyncio.CancelledError:
         logger.info(f"Ping task for token {truncate_token(account.token)} was cancelled")

@@ -33,12 +33,18 @@
 	```bash
 	localStorage.getItem('np_token')
 	```
+        ```
+	rm -rf user.txt && nano user.txt
+ 	```
 3. If you want to use proxy, edit the `proxy.txt` with your proxy.
+  	```
+	rm -rf proxy.txt && nano proxy.txt
+ 	``` 
 	```
 	http://username:password@ip:port
 	socks5://username:password@ip:port
  	```
-4. Run the script:
+5. Run the script:
    	```bash
 	screen -S nodepay-xx
 	```

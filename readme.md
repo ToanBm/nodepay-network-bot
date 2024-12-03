@@ -1,25 +1,17 @@
 # Nodepay Network Bot
-
-## Description
-This script automates network or node operations for Nodepay Network.
-
-## Features
-- **Automated node interaction**
-- **Mutil-account session**
-- **Proxy and non-proxy support**
-
 ## Prerequisites
 - [Python](https://www.python.org/) (version 3.7 or higher)
-
 ## Installation
-
 1. Clone the repository to your local machine:
    ```bash
    git clone https://github.com/recitativonika/nodepay-network-bot.git
    ```
+   ```bash
+   cp -r nodepay-network-bot nodepay-network-bot-xx
+   ```
 2. Navigate to the project directory:
    ```bash
-   cd nodepay-network-bot
+   cd nodepay-network-bot-xx
    ```
 4. Install the necessary dependencies:
    ```bash
@@ -27,7 +19,7 @@ This script automates network or node operations for Nodepay Network.
    ```
 
 ## Usage
-1. Register nodepay account first, if you dont have you can register [here](https://app.nodepay.ai/register?ref=LrCeinXqThMs9tb), I recomended to `download extension`, `activate your account`, complete the `Proof of Humanhood` and `connect your wallet` first before running the script because this important for `Nodepay TGE`.
+1. Register nodepay account first, if you dont have you can register [here](https://app.nodepay.ai/register?ref=RBjYajVO9U5p89W), I recomended to `download extension`, `activate your account`, complete the `Proof of Humanhood` and `connect your wallet` first before running the script because this important for `Nodepay TGE`.
 2. Set and Modify `user.txt` before running the script. Below how to setup this file, put your np_token in the text file, example below:
 	```
 	eyJhbGcixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -43,18 +35,17 @@ This script automates network or node operations for Nodepay Network.
 	```
 3. If you want to use proxy, edit the `proxy.txt` with your proxy.
 	```
- 	ip:port
-	username:password@ip:port
-	http://ip:port
 	http://username:password@ip:port
-	socks5://ip:port
 	socks5://username:password@ip:port
  	```
 4. Run the script:
-	```bash
-	python main.py
+   	```bash
+	screen -S nodepay-xx
 	```
-5. When running the script, answer if you want to use proxy and how much proxy you want to use, it will look like this:
+	```bash
+	python3 main.py
+	```
+6. When running the script, answer if you want to use proxy and how much proxy you want to use, it will look like this:
 	```
  	Do you want to use proxies? (y/n): 
 
@@ -69,4 +60,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 This script only for testing purpose, using this script might violates ToS and may get your account permanently banned.
 
 My reff code if you want to use :) : 
-https://app.nodepay.ai/register?ref=LrCeinXqThMs9tb
+https://app.nodepay.ai/register?ref=RBjYajVO9U5p89W

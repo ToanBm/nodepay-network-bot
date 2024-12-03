@@ -29,18 +29,17 @@
 	- Login to your grass account in https://app.nodepay.ai/dashboard, make sure you is in this link before go to next step
 	- Go to inspect element, press F12 or right-click then pick inspect element in your browser
 	- Go to application tab - look for Local Storage in storage list -> click `https://app.nodepay.ai` and you will see your np_token.
-	- or you can go Console tab and paste this 
+	- or you can go Console tab and paste this
+	`localStorage.getItem('np_token')`
+	  
+3. edit the `proxy.txt` & `user.txt` and with your proxy.
 	```bash
-	localStorage.getItem('np_token')
-	```
-        ```
 	rm -rf user.txt && nano user.txt
  	```
-3. If you want to use proxy, edit the `proxy.txt` with your proxy.
-  	```
+  	```bash
 	rm -rf proxy.txt && nano proxy.txt
  	``` 
-	```
+	```bash
 	http://username:password@ip:port
 	socks5://username:password@ip:port
  	```
